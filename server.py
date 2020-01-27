@@ -29,7 +29,7 @@ def background_thread():
 
 @app.route('/')
 def index():
-    return render_template('index.html', async_mode=socketio.async_mode)
+    return render_template('index.html',)
 
 
 @socketio.on('my_event', namespace='/test')
