@@ -83,7 +83,7 @@ def audio_samples(in_data, frame_count, time_info, status_flags):
 def handle_source(json_data):
     print('Receive sound...' + str(json_data['data']))
     global graph
-    np_wav = np.fromstring(in_data, dtype=np.int16) / \
+    np_wav = np.fromstring(json_data['data'], dtype=np.int16) / \
         32768.0  # Convert to [-1.0, +1.0]
     # Compute RMS and convert to dB
     rms = np.sqrt(np.mean(np_wav**2))
