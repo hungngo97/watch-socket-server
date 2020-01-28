@@ -76,8 +76,10 @@ def close(message):
 
 @socketio.on('send_message')
 def handle_source(json_data):
+    print('Receive message...' + str(json_data['message']))
     text = json_data['message'].encode('ascii', 'ignore')
-    socketio.emit('echo', {'echo': 'Server Says: '+text})
+    socketio.emit('echo', {'echo': 'Server Says: ' + str(text)})
+    print('Sending message back..')
 
 
 @socketio.on('my_room_event', namespace='/test')
