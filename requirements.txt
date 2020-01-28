@@ -11,3 +11,7 @@ six==1.11.0
 Werkzeug==0.14.1
 gunicorn
 eventlet
+numpy==1.14.1 
+tensorflow==1.5.0 
+keras==2.1.6 
+wget

@@ -3,6 +3,17 @@ from flask import Flask, render_template, session, request, \
     copy_current_request_context
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
+from keras.models import load_model
+import tensorflow as tf
+import numpy as np
+from vggish_input import waveform_to_examples
+import homesounds
+import pyaudio
+from pathlib import Path
+import time
+import argparse
+import wget
+from helpers import dbFS
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -14,6 +25,96 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock()
+
+###########################
+# Download model, if it doesn't exist
+###########################
+MODEL_URL = "https://www.dropbox.com/s/cq1d7uqg0l28211/example_model.hdf5?dl=1"
+MODEL_PATH = "models/example_model.hdf5"
+print("=====")
+print("2 / 2: Checking model... ")
+print("=====")
+model_filename = "models/example_model.hdf5"
+homesounds_model = Path(model_filename)
+if (not homesounds_model.is_file()):
+    print("Downloading example_model.hdf5 [867MB]: ")
+    wget.download(MODEL_URL, MODEL_PATH)
+
+##############################
+# Load Deep Learning Model
+##############################
+print("Using deep learning model: %s" % (model_filename))
+model = load_model(model_filename)
+graph = tf.get_default_graph()
+
+##############################
+# Setup Audio Callback
+##############################
+
+
+def audio_samples(in_data, frame_count, time_info, status_flags):
+    global graph
+    np_wav = np.fromstring(in_data, dtype=np.int16) / \
+        32768.0  # Convert to [-1.0, +1.0]
+    # Compute RMS and convert to dB
+    rms = np.sqrt(np.mean(np_wav**2))
+    db = dbFS(rms)
+
+    # Make predictions
+    x = waveform_to_examples(np_wav, RATE)
+    predictions = []
+    with graph.as_default():
+        if x.shape[0] != 0:
+            x = x.reshape(len(x), 96, 64, 1)
+            pred = model.predict(x)
+            predictions.append(pred)
+
+        for prediction in predictions:
+            context_prediction = np.take(
+                prediction[0], [homesounds.labels[x] for x in active_context])
+            m = np.argmax(context_prediction)
+            if (context_prediction[m] > PREDICTION_THRES and db > DBLEVEL_THRES):
+                print("Prediction: %s (%0.2f)" % (
+                    homesounds.to_human_labels[active_context[m]], context_prediction[m]))
+
+    return (in_data, pyaudio.paContinue)
+
+
+@socketio.on('audio_data')
+def handle_source(json_data):
+    print('Receive sound...' + str(json_data['data']))
+    global graph
+    np_wav = np.fromstring(in_data, dtype=np.int16) / \
+        32768.0  # Convert to [-1.0, +1.0]
+    # Compute RMS and convert to dB
+    rms = np.sqrt(np.mean(np_wav**2))
+    db = dbFS(rms)
+    print('Db...', db)
+    # Make predictions
+    print('Making prediction...')
+    x = waveform_to_examples(np_wav, RATE)
+    predictions = []
+    with graph.as_default():
+        if x.shape[0] != 0:
+            x = x.reshape(len(x), 96, 64, 1)
+            pred = model.predict(x)
+            predictions.append(pred)
+
+        for prediction in predictions:
+            context_prediction = np.take(
+                prediction[0], [homesounds.labels[x] for x in active_context])
+            m = np.argmax(context_prediction)
+            if (context_prediction[m] > PREDICTION_THRES and db > DBLEVEL_THRES):
+                socketio.emit('audio_label',
+                              {'label': str(homesounds.to_human_labels[active_context[m]]),
+                               'accuracy': str(context_prediction[m])})
+                print("Prediction: %s (%0.2f)" % (
+                    homesounds.to_human_labels[active_context[m]], context_prediction[m]))
+        socket.emit('audio_label',
+                    {
+                        'label': 'Unrecognized Sound',
+                        'accuracy': '1.0'
+                    })
 
 
 def background_thread():
@@ -32,6 +133,15 @@ def index():
     return render_template('index.html',)
 
 
+@socketio.on('send_message')
+def handle_source(json_data):
+    print('Receive message...' + str(json_data['message']))
+    text = json_data['message'].encode('ascii', 'ignore')
+    socketio.emit('echo', {'echo': 'Server Says: ' + str(text)})
+    print('Sending message back..')
+
+
+""" TESTING SOCKET SERVER PART """
 @socketio.on('my_event', namespace='/test')
 def test_message(message):
     session['receive_count'] = session.get('receive_count', 0) + 1
@@ -72,14 +182,6 @@ def close(message):
                          'count': session['receive_count']},
          room=message['room'])
     close_room(message['room'])
-
-
-@socketio.on('send_message')
-def handle_source(json_data):
-    print('Receive message...' + str(json_data['message']))
-    text = json_data['message'].encode('ascii', 'ignore')
-    socketio.emit('echo', {'echo': 'Server Says: ' + str(text)})
-    print('Sending message back..')
 
 
 @socketio.on('my_room_event', namespace='/test')

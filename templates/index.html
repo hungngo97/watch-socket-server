@@ -10,8 +10,16 @@
             $('#response').html('<p>' + data.echo + '</p>');
         });
 
+        socket.on('audio_label', function (data) {
+            $('#audio_label').html('<p>' + data.label + ', ' + data.accuracy + '</p>');
+        });
+
         function send() {
             socket.emit('send_message', {message: $('form textarea').val()});
+        }
+
+        function sendAudioData() {
+            socket.emit('audio_data', {data: [1, 2, 3, 4, 5]})
         }
     </script>
     <style>
@@ -34,10 +42,12 @@
         <form>
             <textarea placeholder="Send a message to the server..."></textarea>
             <button type="button" onclick="send(); return false;">Send</button>
+            <button type="button" onclick="sendAudioData(); return false;">Send Audio</button>
         </form>
     </div>
     <div id="response">
     </div>
+    <div id="audio_label"></div>
 </body>
 
 </html>
