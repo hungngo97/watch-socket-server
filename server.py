@@ -74,6 +74,12 @@ def close(message):
     close_room(message['room'])
 
 
+@socketio.on('send_message')
+def handle_source(json_data):
+    text = json_data['message'].encode('ascii', 'ignore')
+    socketio.emit('echo', {'echo': 'Server Says: '+text})
+
+
 @socketio.on('my_room_event', namespace='/test')
 def send_room_message(message):
     session['receive_count'] = session.get('receive_count', 0) + 1
