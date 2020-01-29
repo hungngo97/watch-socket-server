@@ -86,7 +86,7 @@ def handle_source(json_data):
     data = data[1:-1]
     print('Strip Data', data)
     global graph
-    np_wav = np.fromstring(str(json_data['data']), dtype=np.int16) / \
+    np_wav = np.fromstring(str(json_data['data']), dtype=np.int16, sep=',') / \
         32768.0  # Convert to [-1.0, +1.0]
     # Compute RMS and convert to dB
     print('Successfully convert to NP rep', np_wav)
