@@ -82,6 +82,9 @@ def audio_samples(in_data, frame_count, time_info, status_flags):
 @socketio.on('audio_data')
 def handle_source(json_data):
     print('Receive sound...' + str(json_data['data']))
+    data = str(json_data['data'])
+    data = data[1:-1]
+    print('Strip Data', data)
     global graph
     np_wav = np.fromstring(str(json_data['data']), dtype=np.int16) / \
         32768.0  # Convert to [-1.0, +1.0]
