@@ -25,6 +25,21 @@ socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock()
 
+# contexts
+context = homesounds.everything
+# use this to change context -- see homesounds.py
+active_context = homesounds.everything
+
+# thresholds
+PREDICTION_THRES = 0.5  # confidence
+DBLEVEL_THRES = -30  # dB
+
+CHANNELS = 1
+RATE = 16000
+CHUNK = RATE
+MICROPHONES_DESCRIPTION = []
+FPS = 60.0
+
 ###########################
 # Download model, if it doesn't exist
 ###########################
@@ -67,7 +82,7 @@ def audio_samples(in_data, frame_count, time_info, status_flags):
             x = x.reshape(len(x), 96, 64, 1)
             pred = model.predict(x)
             predictions.append(pred)
-
+        print('Prediction succeeded')
         for prediction in predictions:
             context_prediction = np.take(
                 prediction[0], [homesounds.labels[x] for x in active_context])
@@ -86,7 +101,7 @@ def handle_source(json_data):
     data = data[1:-1]
     print('Strip Data', data)
     global graph
-    np_wav = np.fromstring(str(json_data['data']), dtype=np.int16, sep=',') / \
+    np_wav = np.fromstring(data, dtype=np.int16, sep=',') / \
         32768.0  # Convert to [-1.0, +1.0]
     # Compute RMS and convert to dB
     print('Successfully convert to NP rep', np_wav)
