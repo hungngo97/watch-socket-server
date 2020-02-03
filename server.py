@@ -96,10 +96,8 @@ def audio_samples(in_data, frame_count, time_info, status_flags):
 
 @socketio.on('audio_data')
 def handle_source(json_data):
-    print('Receive sound...' + str(json_data['data']))
     data = str(json_data['data'])
     data = data[1:-1]
-    print('Strip Data', data)
     global graph
     np_wav = np.fromstring(data, dtype=np.int16, sep=',') / \
         32768.0  # Convert to [-1.0, +1.0]
@@ -122,6 +120,8 @@ def handle_source(json_data):
             context_prediction = np.take(
                 prediction[0], [homesounds.labels[x] for x in active_context])
             m = np.argmax(context_prediction)
+            print('Max prediction', str(
+                homesounds.to_human_labels[active_context[m]]), str(context_prediction[m]))
             if (context_prediction[m] > PREDICTION_THRES and db > DBLEVEL_THRES):
                 socketio.emit('audio_label',
                               {'label': str(homesounds.to_human_labels[active_context[m]]),
