@@ -40,30 +40,30 @@ CHUNK = RATE
 MICROPHONES_DESCRIPTION = []
 FPS = 60.0
 
-###########################
-# Download model, if it doesn't exist
-###########################
-MODEL_URL = "https://www.dropbox.com/s/cq1d7uqg0l28211/example_model.hdf5?dl=1"
-MODEL_PATH = "models/example_model.hdf5"
-print("=====")
-print("2 / 2: Checking model... ")
-print("=====")
-model_filename = "models/example_model.hdf5"
-homesounds_model = Path(model_filename)
-if (not homesounds_model.is_file()):
-    print("Downloading example_model.hdf5 [867MB]: ")
-    wget.download(MODEL_URL, MODEL_PATH)
+# ###########################
+# # Download model, if it doesn't exist
+# ###########################
+# MODEL_URL = "https://www.dropbox.com/s/cq1d7uqg0l28211/example_model.hdf5?dl=1"
+# MODEL_PATH = "models/example_model.hdf5"
+# print("=====")
+# print("2 / 2: Checking model... ")
+# print("=====")
+# model_filename = "models/example_model.hdf5"
+# homesounds_model = Path(model_filename)
+# if (not homesounds_model.is_file()):
+#     print("Downloading example_model.hdf5 [867MB]: ")
+#     wget.download(MODEL_URL, MODEL_PATH)
 
-##############################
-# Load Deep Learning Model
-##############################
-print("Using deep learning model: %s" % (model_filename))
-model = load_model(model_filename)
-graph = tf.get_default_graph()
+# ##############################
+# # Load Deep Learning Model
+# ##############################
+# print("Using deep learning model: %s" % (model_filename))
+# model = load_model(model_filename)
+# graph = tf.get_default_graph()
 
-##############################
-# Setup Audio Callback
-##############################
+# ##############################
+# # Setup Audio Callback
+# ##############################
 
 
 def audio_samples(in_data, frame_count, time_info, status_flags):
@@ -80,6 +80,7 @@ def audio_samples(in_data, frame_count, time_info, status_flags):
     with graph.as_default():
         if x.shape[0] != 0:
             x = x.reshape(len(x), 96, 64, 1)
+            print('Reshape x successful', x.shape)
             pred = model.predict(x)
             predictions.append(pred)
         print('Prediction succeeded')
@@ -113,26 +114,34 @@ def handle_source(json_data):
     with graph.as_default():
         if x.shape[0] != 0:
             x = x.reshape(len(x), 96, 64, 1)
-            pred = model.predict(x)
-            predictions.append(pred)
+            print('Successfully reshape x', x)
+            # pred = model.predict(x)
+            # predictions.append(pred)
 
-        for prediction in predictions:
-            context_prediction = np.take(
-                prediction[0], [homesounds.labels[x] for x in active_context])
-            m = np.argmax(context_prediction)
-            print('Max prediction', str(
-                homesounds.to_human_labels[active_context[m]]), str(context_prediction[m]))
-            if (context_prediction[m] > PREDICTION_THRES and db > DBLEVEL_THRES):
-                socketio.emit('audio_label',
-                              {'label': str(homesounds.to_human_labels[active_context[m]]),
-                               'accuracy': str(context_prediction[m])})
-                print("Prediction: %s (%0.2f)" % (
-                    homesounds.to_human_labels[active_context[m]], context_prediction[m]))
+        print('Prediction: Speech (50%)')
         socket.emit('audio_label',
                     {
                         'label': 'Unrecognized Sound',
                         'accuracy': '1.0'
                     })
+
+        # for prediction in predictions:
+        #     context_prediction = np.take(
+        #         prediction[0], [homesounds.labels[x] for x in active_context])
+        #     m = np.argmax(context_prediction)
+        #     print('Max prediction', str(
+        #         homesounds.to_human_labels[active_context[m]]), str(context_prediction[m]))
+        #     if (context_prediction[m] > PREDICTION_THRES and db > DBLEVEL_THRES):
+        #         socketio.emit('audio_label',
+        #                       {'label': str(homesounds.to_human_labels[active_context[m]]),
+        #                        'accuracy': str(context_prediction[m])})
+        #         print("Prediction: %s (%0.2f)" % (
+        #             homesounds.to_human_labels[active_context[m]], context_prediction[m]))
+        # socket.emit('audio_label',
+        #             {
+        #                 'label': 'Unrecognized Sound',
+        #                 'accuracy': '1.0'
+        #             })
 
 
 def background_thread():
