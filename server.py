@@ -111,37 +111,49 @@ def handle_source(json_data):
     print('Making prediction...')
     x = waveform_to_examples(np_wav, RATE)
     predictions = []
-    with graph.as_default():
-        if x.shape[0] != 0:
-            x = x.reshape(len(x), 96, 64, 1)
-            print('Successfully reshape x', x)
-            # pred = model.predict(x)
-            # predictions.append(pred)
+    if x.shape[0] != 0:
+        x = x.reshape(len(x), 96, 64, 1)
+    print('Successfully reshape x', x)
+    # pred = model.predict(x)
+    # predictions.append(pred)
 
-        print('Prediction: Speech (50%)')
-        socket.emit('audio_label',
-                    {
-                        'label': 'Unrecognized Sound',
-                        'accuracy': '1.0'
-                    })
+    print('Prediction: Speech (50%)')
+    socket.emit('audio_label',
+                {
+                    'label': 'Unrecognized Sound',
+                    'accuracy': '1.0'
+                })
+    # with graph.as_default():
+    # if x.shape[0] != 0:
+    #     x = x.reshape(len(x), 96, 64, 1)
+    #     print('Successfully reshape x', x)
+    #     # pred = model.predict(x)
+    #     # predictions.append(pred)
 
-        # for prediction in predictions:
-        #     context_prediction = np.take(
-        #         prediction[0], [homesounds.labels[x] for x in active_context])
-        #     m = np.argmax(context_prediction)
-        #     print('Max prediction', str(
-        #         homesounds.to_human_labels[active_context[m]]), str(context_prediction[m]))
-        #     if (context_prediction[m] > PREDICTION_THRES and db > DBLEVEL_THRES):
-        #         socketio.emit('audio_label',
-        #                       {'label': str(homesounds.to_human_labels[active_context[m]]),
-        #                        'accuracy': str(context_prediction[m])})
-        #         print("Prediction: %s (%0.2f)" % (
-        #             homesounds.to_human_labels[active_context[m]], context_prediction[m]))
-        # socket.emit('audio_label',
-        #             {
-        #                 'label': 'Unrecognized Sound',
-        #                 'accuracy': '1.0'
-        #             })
+    # print('Prediction: Speech (50%)')
+    # socket.emit('audio_label',
+    #             {
+    #                 'label': 'Unrecognized Sound',
+    #                 'accuracy': '1.0'
+    #             })
+
+    # for prediction in predictions:
+    #     context_prediction = np.take(
+    #         prediction[0], [homesounds.labels[x] for x in active_context])
+    #     m = np.argmax(context_prediction)
+    #     print('Max prediction', str(
+    #         homesounds.to_human_labels[active_context[m]]), str(context_prediction[m]))
+    #     if (context_prediction[m] > PREDICTION_THRES and db > DBLEVEL_THRES):
+    #         socketio.emit('audio_label',
+    #                       {'label': str(homesounds.to_human_labels[active_context[m]]),
+    #                        'accuracy': str(context_prediction[m])})
+    #         print("Prediction: %s (%0.2f)" % (
+    #             homesounds.to_human_labels[active_context[m]], context_prediction[m]))
+    # socket.emit('audio_label',
+    #             {
+    #                 'label': 'Unrecognized Sound',
+    #                 'accuracy': '1.0'
+    #             })
 
 
 def background_thread():
