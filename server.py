@@ -118,11 +118,11 @@ def handle_source(json_data):
     # predictions.append(pred)
 
     print('Prediction: Speech (50%)')
-    socket.emit('audio_label',
-                {
-                    'label': 'Unrecognized Sound',
-                    'accuracy': '1.0'
-                })
+    socketio.emit('audio_label',
+                  {
+                      'label': 'Unrecognized Sound',
+                      'accuracy': '1.0'
+                  })
     # with graph.as_default():
     # if x.shape[0] != 0:
     #     x = x.reshape(len(x), 96, 64, 1)
