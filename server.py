@@ -99,8 +99,9 @@ def audio_samples(in_data, frame_count, time_info, status_flags):
 def handle_source(json_data):
     data = str(json_data['data'])
     data = data[1:-1]
-
+    print('Data before transform to np', data)
     x = np.fromstring(data, dtype=np.int16, sep=',')
+    print('data after to numpy', x)
     x = x.reshape(len(x), 96, 64, 1)
     print('Successfully reshape audio features', x.shape)
     print('Prediction: Knocking (50%)')
