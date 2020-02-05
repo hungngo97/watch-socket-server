@@ -102,7 +102,7 @@ def handle_source(json_data):
     print('Data before transform to np', data)
     x = np.fromstring(data, dtype=np.float16, sep=',')
     print('data after to numpy', x)
-    x = x.reshape(len(x), 96, 64, 1)
+    x = x.reshape(1, 96, 64, 1)
     print('Successfully reshape audio features', x.shape)
     print('Prediction: Knocking (50%)')
     socketio.emit('audio_label',
