@@ -95,6 +95,54 @@ def audio_samples(in_data, frame_count, time_info, status_flags):
     return (in_data, pyaudio.paContinue)
 
 
+@socketio.on('audio_feature_data')
+def handle_source(json_data):
+    data = str(json_data['data'])
+    data = data[1:-1]
+
+    x = np.fromstring(data, dtype=np.int16, sep=',')
+    x = x.reshape(len(x), 96, 64, 1)
+    print('Successfully reshape audio features', x.shape)
+    print('Prediction: Knocking (50%)')
+    socketio.emit('audio_label',
+                  {
+                      'label': 'Knocking',
+                      'accuracy': '0.95'
+                  })
+
+    # with graph.as_default():
+    # if x.shape[0] != 0:
+    #     x = x.reshape(len(x), 96, 64, 1)
+    #     print('Successfully reshape x', x)
+    #     # pred = model.predict(x)
+    #     # predictions.append(pred)
+
+    # print('Prediction: Speech (50%)')
+    # socket.emit('audio_label',
+    #             {
+    #                 'label': 'Unrecognized Sound',
+    #                 'accuracy': '1.0'
+    #             })
+
+    # for prediction in predictions:
+    #     context_prediction = np.take(
+    #         prediction[0], [homesounds.labels[x] for x in active_context])
+    #     m = np.argmax(context_prediction)
+    #     print('Max prediction', str(
+    #         homesounds.to_human_labels[active_context[m]]), str(context_prediction[m]))
+    #     if (context_prediction[m] > PREDICTION_THRES and db > DBLEVEL_THRES):
+    #         socketio.emit('audio_label',
+    #                       {'label': str(homesounds.to_human_labels[active_context[m]]),
+    #                        'accuracy': str(context_prediction[m])})
+    #         print("Prediction: %s (%0.2f)" % (
+    #             homesounds.to_human_labels[active_context[m]], context_prediction[m]))
+    # socket.emit('audio_label',
+    #             {
+    #                 'label': 'Unrecognized Sound',
+    #                 'accuracy': '1.0'
+    #             })
+
+
 @socketio.on('audio_data')
 def handle_source(json_data):
     data = str(json_data['data'])
@@ -113,7 +161,7 @@ def handle_source(json_data):
     predictions = []
     if x.shape[0] != 0:
         x = x.reshape(len(x), 96, 64, 1)
-    print('Successfully reshape x', x)
+    print('Successfully reshape x', x.shape)
     # pred = model.predict(x)
     # predictions.append(pred)
 
