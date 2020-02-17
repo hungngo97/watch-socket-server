@@ -94,6 +94,21 @@ def audio_samples(in_data, frame_count, time_info, status_flags):
 
     return (in_data, pyaudio.paContinue)
 
+@socketio.on('invalid_audio_feature_data')
+def handle_source(json_data):
+    db = str(json_data['db'])
+    time = str(json_data['time'])
+    record_time = str(json_data['record_time'])
+    socketio.emit(
+        'audio_label',
+        {
+            'label': 'Unidentified Sound',
+            'accuracy': '1.0',
+            'db': str(db),
+            'time': str(time),
+            'record_time': str(record_time)
+        },
+        room=request.sid)
 
 @socketio.on('audio_feature_data')
 def handle_source(json_data):
