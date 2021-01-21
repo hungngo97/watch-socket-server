@@ -65,6 +65,12 @@ FPS = 60.0
 # # Setup Audio Callback
 # ##############################
 
+# { user -> ModelRegistry }
+user_model_registry_mapping = {}
+
+def init_db():
+    pass
+
 
 def audio_samples(in_data, frame_count, time_info, status_flags):
     global graph
@@ -94,6 +100,11 @@ def audio_samples(in_data, frame_count, time_info, status_flags):
 
     return (in_data, pyaudio.paContinue)
 
+
+@socketio.on('submit_audio_file')
+def submit_audio_file(json_data):
+    user = str(json_data['user'])
+    # TODO
 
 @socketio.on('audio_feature_data')
 def handle_source(json_data):
